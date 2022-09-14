@@ -12,7 +12,7 @@ public static partial class WslApiLoader {
         IntPtr stdIn,
         IntPtr stdOut,
         IntPtr stdErr,
-        out Process process
+        out IntPtr process
     ) {
         [DllImport("wslapi.dll", CallingConvention = CallingConvention.Winapi, CharSet = CharSet.Unicode)]
         // ReSharper disable once LocalFunctionHidesMethod
@@ -34,13 +34,8 @@ public static partial class WslApiLoader {
                 stdIn,
                 stdOut,
                 stdErr,
-                out var processHandle
+                out process
             )
         );
-        process = Process.GetProcessById(Kernel32Loader.GetProcessId(processHandle));
-        
-        if (!Kernel32Loader.CloseHandle(processHandle)) {
-            throw new ExternalException("Could not close process handle!");
-        };
     }
 }
