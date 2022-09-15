@@ -11,7 +11,8 @@ public static partial class WslApiLoader {
         string distributionName,
         string command,
         bool useCurrentWorkingDirectory,
-        out uint exitCode
+        out uint exitCode,
+        bool noStderr = false
     ) {
         var stdin = Kernel32Loader.GetStdHandle(Kernel32Loader.STD_INPUT_HANDLE);
         var stderr = Kernel32Loader.GetStdHandle(Kernel32Loader.STD_ERROR_HANDLE);
@@ -24,6 +25,14 @@ public static partial class WslApiLoader {
 
         if (!Kernel32Loader.CreatePipe(out IntPtr readPipe, out IntPtr writePipe, ref attributes, 0))
             throw new Exception("Cannot create stdout pipe");
+
+        var stderrRead = IntPtr.Zero;
+        var stderrWrite = IntPtr.Zero;
+        if (noStderr) {
+            if (!Kernel32Loader.CreatePipe(out stderrRead, out stderrWrite, ref attributes, 0))
+                throw new Exception("Cannot create stderr pipe");
+            stderr = stderrWrite;
+        }
         
         try {
             WslLaunch(distributionName, command, useCurrentWorkingDirectory, stdin, writePipe, stderr,
@@ -36,6 +45,7 @@ public static partial class WslApiLoader {
             }
 
             Kernel32Loader.CloseHandle(hProcess);
+            Kernel32Loader.CloseHandle(writePipe); // Make sure the pipe is closed if the spawned process has not done that
 
             const int bufferLength = 65536;
             var bufferPointer = Marshal.AllocHGlobal(bufferLength);
@@ -64,6 +74,10 @@ public static partial class WslApiLoader {
         } finally {
             Kernel32Loader.CloseHandle(readPipe);
             Kernel32Loader.CloseHandle(writePipe);
+            if (noStderr) {
+                Kernel32Loader.CloseHandle(stderrRead);
+                Kernel32Loader.CloseHandle(stderrWrite);
+            }
         }
     }
     
