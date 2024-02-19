@@ -13,13 +13,13 @@ jobs:
         run: dotnet build -c Release
         
       - name: Upload DLL
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dll
           path: bin/Release/net6.0/*
         
       - name: Upload nupkg
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nupkg
           path: bin/Release/*.nupkg
@@ -34,12 +34,12 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Download DLL
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: dll
         
       - name: Download nupkg
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: nupkg
           
